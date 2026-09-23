@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One Peek embedded in a host editor. A host can hold several (one per line, Spec FR-4); each is
+ * One Peek embedded in a host editor. A host can hold several (one per line); each is
  * also registered under its viewer, so an action invoked from inside the viewer finds its session.
  */
 public final class PeekSession {

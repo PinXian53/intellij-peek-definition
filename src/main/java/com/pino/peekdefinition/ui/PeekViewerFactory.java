@@ -26,7 +26,7 @@ final class PeekViewerFactory {
     }
 
     static @NotNull EditorEx create(@NotNull Project project, @NotNull Document document, @NotNull PeekTarget target) {
-        // The real document, not a copy: edits elsewhere show up live and Ctrl+Click keeps working (Spec D1, FR-7).
+        // The real document, not a copy: edits elsewhere show up live and Ctrl+Click keeps working.
         EditorEx viewer = (EditorEx) EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW);
         viewer.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, target.file()));
         viewer.setBorder(JBUI.Borders.empty());

@@ -6,7 +6,7 @@ import com.pino.peekdefinition.resolve.JavaPeekTargetResolver;
 import com.pino.peekdefinition.resolve.PeekResolveResult;
 
 /**
- * Spec FR-2: resolution goes through IntelliJ's own resolve, never by method name.
+ * Resolution goes through IntelliJ's own resolve, never by method name.
  * The light fixture here has no JDK, so overloads use project types instead of Long / String.
  */
 public class JavaPeekTargetResolverTest extends LightJavaCodeInsightFixtureTestCase {

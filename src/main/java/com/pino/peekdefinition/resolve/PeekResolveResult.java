@@ -8,7 +8,7 @@ public sealed interface PeekResolveResult {
     record Found(@NotNull PeekTarget target) implements PeekResolveResult {
     }
 
-    /** Nothing to peek; {@code message} is shown as an editor hint (Spec FR-2). */
+    /** Nothing to peek; {@code message} is shown as an editor hint. */
     record Failed(@NotNull String message) implements PeekResolveResult {
     }
 }

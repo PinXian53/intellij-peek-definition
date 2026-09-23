@@ -1,40 +1,51 @@
-# IntelliJ Peek Definition
+# Peek Definition
 
-Visual Studio style **Peek Definition** for IntelliJ IDEA: shows the definition of the symbol at the caret
-inside the current editor, below the current line. Spec: [docs/Spec.md](docs/Spec.md).
+**Peek Definition** for IntelliJ IDEA: shows the definition of the symbol at the caret
+right below the current line, inside the editor you are working in, so you can read an
+implementation without leaving your file or losing your place.
 
-Status: **POC** (Spec §10).
+Unlike Quick Definition (`Ctrl+Shift+I`), the Peek is not a popup: it does not cover your code,
+it stays open while you keep working, and you can open several at once.
 
-## Build & run
+## Features
+
+- **Embedded in the editor**: the definition opens between the lines of your code, with the
+  lines below moved down instead of hidden.
+- **Real editor, real file**: the Peek shows the whole definition file, scrolled to the
+  definition, which is highlighted. It uses your color scheme, font and theme, and updates live
+  when the file changes.
+- **Accurate**: definitions are resolved the same way as *Go to Declaration*, so overloads,
+  constructors and library classes (attached or decompiled sources) resolve correctly.
+- **Several Peeks at once**: peek from different lines and every Peek stays open. Peeking from
+  inside a Peek replaces its content with the new definition.
+- **Read-only**: opening, switching and closing a Peek never modifies your code.
+
+## Usage
+
+1. Put the caret on a method call or constructor in a Java file.
+2. Right-click → **Peek Definition**, or **Navigate → Peek Definition**.
+3. Optional: bind a key in **Settings → Keymap → Peek Definition** (no shortcut is assigned by default).
+
+In the Peek:
+
+| Action | Result |
+| --- | --- |
+| Click the title bar | Collapse / expand |
+| Double-click the title bar | Open the file in a regular editor tab |
+| **Esc** inside a Peek, or its **×** button | Close that Peek |
+| **Esc** in the editor | Close all Peeks of the editor |
+| Peek Definition inside a Peek | Replace its content with the new definition |
+
+## Compatibility
+
+IntelliJ IDEA 2024.2 or later, Community and Ultimate.
+
+## Build
 
 Requires JDK 17+ to run Gradle; the plugin compiles for Java 21 against IntelliJ IDEA 2024.2.
 
 ```bash
-./gradlew test          # automated checks (resolve, lifecycle, Esc)
+./gradlew test          # run the tests
 ./gradlew runIde        # sandbox IDE with the plugin installed
 ./gradlew buildPlugin   # build/distributions/intellij-peek-definition-<version>.zip
 ```
-
-## Try it
-
-The action has no default shortcut. In the sandbox IDE:
-
-1. Open any Java project.
-2. Put the caret on a method call → right-click → **Peek Definition**, or **Navigate → Peek Definition**.
-3. Optional: bind a key in **Settings → Keymap → Peek Definition** (Visual Studio uses `Alt+F12`,
-   which IntelliJ already uses for Terminal).
-
-Inside the Peek: **Esc** closes it, double-clicking the title opens the file in a normal tab,
-and running Peek Definition again replaces the content with the new definition.
-
-## Manual POC checklist
-
-| # | Check |
-| --- | --- |
-| P1 | You can scroll, select text and give focus to the code inside the Peek |
-| P3 | Keywords, strings and comments are coloured like the normal editor |
-| P4 | Method / field / parameter colours: note the result with the target file open in a tab and with it closed |
-| P5 | Ctrl/⌘+Click inside the Peek jumps to the right place |
-| P6 | Opening and closing the Peek does not make the host editor jump |
-| P8 | Switching Light ↔ Darcula updates the Peek immediately |
-| P10 | The mouse wheel inside the Peek scrolls the Peek, not the host editor |

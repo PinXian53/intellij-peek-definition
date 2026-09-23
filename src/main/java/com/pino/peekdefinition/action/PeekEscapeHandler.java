@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Esc closes Peeks (Spec FR-6): inside a viewer only that Peek, in the host every Peek it has.
+ * Esc closes Peeks: inside a viewer only that Peek, in the host every Peek it has.
  * Only once the editor's own Esc behaviour (clear selection, drop extra carets) has nothing left to do.
  */
 public final class PeekEscapeHandler extends EditorActionHandler {

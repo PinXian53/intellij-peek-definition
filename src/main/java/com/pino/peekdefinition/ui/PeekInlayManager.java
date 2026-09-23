@@ -44,7 +44,7 @@ public final class PeekInlayManager {
 
     /**
      * Shows {@code target} below the line containing {@code anchorOffset} in {@code host}. Peeks on other
-     * lines stay open (Spec FR-4); {@code replacing}, or else a Peek already on that line, is closed first.
+     * lines stay open; {@code replacing}, or else a Peek already on that line, is closed first.
      */
     public static @Nullable PeekSession show(@NotNull Editor host, int anchorOffset, @NotNull PeekTarget target,
                                              @Nullable PeekSession replacing) {

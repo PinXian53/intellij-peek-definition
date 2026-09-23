@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * A resolved definition, captured inside a read action so it can be handed to the UI thread.
  *
  * @param pointer          survives PSI reparses; the UI must not hold the raw {@link PsiElement}
- * @param file             file whose whole document the Peek Viewer shows (Spec D1)
+ * @param file             file whose whole document the Peek Viewer shows
  * @param range            the definition's full range (JavaDoc + annotations + signature + body)
  * @param navigationOffset where the viewer caret goes, normally the name identifier
  * @param title            header text, e.g. {@code UserService.java — UserService.getUser(Long)}

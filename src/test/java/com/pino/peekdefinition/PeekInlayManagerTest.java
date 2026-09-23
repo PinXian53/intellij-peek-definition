@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Lifecycle checks from the POC list (Spec §10): P7 document untouched, P9 inlay removed and viewer released.
+ * Lifecycle checks: the document stays untouched, inlays are removed and viewers released.
  * The light test framework also fails tearDown if any editor is left unreleased.
  */
 public class PeekInlayManagerTest extends LightJavaCodeInsightFixtureTestCase {

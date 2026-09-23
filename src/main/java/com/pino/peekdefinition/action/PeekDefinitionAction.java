@@ -51,7 +51,7 @@ public final class PeekDefinitionAction extends AnAction {
             return;
         }
 
-        // Invoked inside a Peek: the new definition replaces that Peek, anchored where it was (Spec FR-6).
+        // Invoked inside a Peek: the new definition replaces that Peek, anchored where it was.
         PeekSession session = PeekSession.ofViewer(editor);
         boolean fromViewer = session != null;
         Editor host = fromViewer ? session.host() : editor;
