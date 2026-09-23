@@ -44,6 +44,19 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.1.1</b></p>
+    <ul>
+      <li>Implementations: peeking an interface or abstract method adds a dropdown to the header listing its
+      implementations; pick one to show it in the same Peek.</li>
+      <li>Shows only the method by default. Switch to the whole file, or turn on line numbers, from the new
+      <b>&#8942;</b> menu; the choice is remembered for the next Peek.</li>
+      <li>Header redesigned after Quick Definition: the definition's icon and signature, plus its module or
+      library.</li>
+      <li>New <b>Open in Editor</b> button in the header. Double-clicking the title no longer opens the file,
+      so it can't be triggered by accident; clicking the title still collapses or expands the Peek.</li>
+      <li>The Peek stands out more from the surrounding code: rounded outline in the theme's accent color,
+      header in the tool window color, and a slightly tinted background.</li>
+    </ul>
     <p><b>0.0.1</b></p>
     <ul>
       <li>Initial release: Peek Definition for Java, embedded below the current line.</li>
