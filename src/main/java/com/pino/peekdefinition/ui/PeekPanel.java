@@ -6,10 +6,13 @@ import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.IconUtil;
+import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
@@ -22,6 +25,10 @@ final class PeekPanel extends JPanel {
 
     static final int MAX_VISIBLE_LINES = 15;
     static final int MIN_VISIBLE_LINES = 5;
+    /** Header title is this many points larger than the default label font. */
+    static final float TITLE_FONT_INCREASE = 2f;
+    /** Header icons are drawn this much larger than the standard 16px action icons. */
+    static final float ICON_SCALE = 1.25f;
 
     private final EditorEx viewer;
     private final JPanel header;
@@ -37,7 +44,7 @@ final class PeekPanel extends JPanel {
 
         collapseButton = new InplaceButton(collapseIcon(), e -> setCollapsed(!collapsed));
         InplaceButton closeButton = new InplaceButton(
-                new IconButton("Close (Esc)", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered), e -> onClose.run());
+                iconButton("Close (Esc)", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered), e -> onClose.run());
 
         JPanel buttons = new JPanel();
         buttons.setOpaque(false);
@@ -45,25 +52,33 @@ final class PeekPanel extends JPanel {
         buttons.add(closeButton);
 
         JBLabel titleLabel = new JBLabel(title);
-        titleLabel.setToolTipText("Double-click to open in editor");
+        titleLabel.setFont(JBFont.label().biggerOn(TITLE_FONT_INCREASE));
+        titleLabel.setToolTipText("Click to collapse / expand, double-click to open in editor");
 
-        header = new JPanel(new BorderLayout(JBUI.scale(4), 0));
-        header.setBorder(JBUI.Borders.empty(2, 4));
+        header = new JPanel(new BorderLayout(JBUI.scale(6), 0));
+        header.setBorder(JBUI.Borders.empty(4, 6));
         header.add(collapseButton, BorderLayout.WEST);
         header.add(titleLabel, BorderLayout.CENTER);
         header.add(buttons, BorderLayout.EAST);
         // The label needs its own listener: its tooltip makes it a mouse target, so clicks never reach the header.
         // Pressed rather than clicked: a click is dropped if the mouse moves between press and release.
-        MouseAdapter promoteOnDoubleClick = new MouseAdapter() {
+        // Single click toggles right away instead of waiting out the double-click interval; on a double click
+        // the first press collapses and the second promotes, which closes the Peek anyway.
+        MouseAdapter headerClicks = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                if (e.getClickCount() == 1) {
+                    setCollapsed(!collapsed);
+                } else if (e.getClickCount() == 2) {
                     onPromote.run();
                 }
             }
         };
-        header.addMouseListener(promoteOnDoubleClick);
-        titleLabel.addMouseListener(promoteOnDoubleClick);
+        header.addMouseListener(headerClicks);
+        titleLabel.addMouseListener(headerClicks);
 
         setBorder(JBUI.Borders.customLine(JBColor.border(), 1));
         add(header, BorderLayout.NORTH);
@@ -96,7 +111,12 @@ final class PeekPanel extends JPanel {
 
     private IconButton collapseIcon() {
         return collapsed
-                ? new IconButton("Expand", AllIcons.General.ArrowRight)
-                : new IconButton("Collapse", AllIcons.General.ArrowDown);
+                ? iconButton("Expand", AllIcons.General.ArrowRight, AllIcons.General.ArrowRight)
+                : iconButton("Collapse", AllIcons.General.ArrowDown, AllIcons.General.ArrowDown);
+    }
+
+    private static IconButton iconButton(String tooltip, Icon icon, Icon hovered) {
+        return new IconButton(tooltip,
+                IconUtil.scale(icon, null, ICON_SCALE), IconUtil.scale(hovered, null, ICON_SCALE));
     }
 }

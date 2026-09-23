@@ -48,10 +48,37 @@ public class PeekPanelTest extends BasePlatformTestCase {
         assertEquals(1, promoted.get());
     }
 
-    public void testSingleClickDoesNotPromote() {
-        press(UIUtil.findComponentOfType(panel(), JBLabel.class), 1);
+    public void testSingleClickOnTitleTogglesCollapse() {
+        PeekPanel panel = panel();
+        JBLabel title = UIUtil.findComponentOfType(panel, JBLabel.class);
 
+        press(title, 1);
+
+        assertTrue(panel.isCollapsed());
+        assertFalse(viewer.getComponent().isVisible());
         assertEquals(0, promoted.get());
+
+        press(title, 1);
+
+        assertFalse(panel.isCollapsed());
+        assertTrue(viewer.getComponent().isVisible());
+    }
+
+    public void testSingleClickOnHeaderBackgroundTogglesCollapse() {
+        PeekPanel panel = panel();
+
+        press((JComponent) UIUtil.findComponentOfType(panel, JBLabel.class).getParent(), 1);
+
+        assertTrue(panel.isCollapsed());
+    }
+
+    public void testCollapsedPanelIsOnlyAsTallAsItsHeader() {
+        PeekPanel panel = panel();
+        int expanded = panel.getPreferredSize().height;
+
+        panel.setCollapsed(true);
+
+        assertTrue(panel.getPreferredSize().height < expanded);
     }
 
     private PeekPanel panel() {
