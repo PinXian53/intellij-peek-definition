@@ -51,7 +51,7 @@ final class PeekPanel extends JPanel {
     /** Header icons are drawn this much larger than the standard 16px action icons. */
     static final float ICON_SCALE = 1.25f;
     /** Outline width, so the Peek stands out from the surrounding code that shares its background. */
-    static final int OUTLINE_THICKNESS = 2;
+    static final float OUTLINE_THICKNESS = 1.5f;
     /** The theme's focus-ring blue; resolved on each paint so it follows theme switches. */
     static final JBColor OUTLINE_COLOR = JBColor.lazy(JBUI.CurrentTheme.Focus::focusColor);
     /** Corner rounding of the outline, in unscaled pixels. */
@@ -129,7 +129,7 @@ final class PeekPanel extends JPanel {
         titleLabel.addMouseListener(headerClicks);
 
         // Only reserves room for the outline, which paintChildren draws on top of the children.
-        setBorder(JBUI.Borders.empty(OUTLINE_THICKNESS));
+        setBorder(JBUI.Borders.empty((int) Math.ceil(OUTLINE_THICKNESS)));
         setOpaque(false);
         add(header, BorderLayout.NORTH);
         add(viewer.getComponent(), BorderLayout.CENTER);

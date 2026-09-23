@@ -120,8 +120,9 @@ public class PeekPanelTest extends BasePlatformTestCase {
     public void testOutlineIsThickerThanAHairline() {
         PeekPanel panel = panel();
 
-        assertEquals(JBUI.scale(PeekPanel.OUTLINE_THICKNESS), panel.getInsets().top);
-        assertEquals(JBUI.scale(PeekPanel.OUTLINE_THICKNESS), panel.getInsets().left);
+        int reserved = JBUI.scale((int) Math.ceil(PeekPanel.OUTLINE_THICKNESS));
+        assertEquals(reserved, panel.getInsets().top);
+        assertEquals(reserved, panel.getInsets().left);
     }
 
     public void testTitleShowsTheDefinitionIcon() {
