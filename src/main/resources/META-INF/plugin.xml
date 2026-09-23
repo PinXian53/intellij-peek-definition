@@ -7,7 +7,7 @@
     caret right below the current line, inside the editor you are working in, so you can read an
     implementation without leaving your file or losing your place.</p>
 
-    <p>Unlike Quick Definition (<code>Ctrl+Shift+I</code>), the Peek is not a popup: it does not cover your
+    <p>Unlike Quick Definition, the Peek is not a popup: it does not cover your
     code, it stays open while you keep working, and you can open several at once.</p>
 
     <h3>Features</h3>
