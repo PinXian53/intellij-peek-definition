@@ -1,4 +1,20 @@
-# Peek Definition
+<div align="center">
+    <a href="https://plugins.jetbrains.com/plugin/34437-peek-definition">
+        <img src="./src/main/resources/META-INF/pluginIcon.svg" width="280" height="280" alt="logo"/>
+    </a>
+</div>
+
+<h1 align="center">Intellij Code Marker</h1>
+
+<p align="center">
+<a href="https://plugins.jetbrains.com/plugin/34437-peek-definition"><img src="https://img.shields.io/jetbrains/plugin/r/stars/34437?style=flat-square"></a>
+<a href="https://plugins.jetbrains.com/plugin/34437-peek-definition"><img src="https://img.shields.io/jetbrains/plugin/d/34437-peek-definition.svg?style=flat-square"></a>
+<a href="https://plugins.jetbrains.com/plugin/34437-peek-definition"><img src="https://img.shields.io/jetbrains/plugin/v/34437-peek-definition.svg?style=flat-square"></a>
+</p>
+
+<br>
+
+> Jetbrains Marketplace: https://plugins.jetbrains.com/plugin/34437-peek-definition
 
 **Peek Definition** for IntelliJ IDEA: shows the definition of the symbol at the caret
 right below the current line, inside the editor you are working in, so you can read an
