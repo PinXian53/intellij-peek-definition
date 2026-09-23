@@ -81,7 +81,7 @@ Phase 2：在 Peek 內對 `getUser` 再次執行 Peek，**同一個 Peek 區塊*
 | Peek Target | Resolve 後得到的 `PsiElement`（method、class、field…） |
 | Peek Panel | 嵌入 Host Editor 的整個 UI 區塊（標題列 + Viewer） |
 | Peek Viewer | Peek Panel 內的唯讀 `EditorEx`，負責顯示程式碼 |
-| Peek Session | 一個 Host Editor 上的 Peek 狀態（目前 Target、history） |
+| Peek Session | 一個 Peek Panel 的狀態（所屬 Host Editor、目前 Target、history）；一個 Host Editor 可有多個 |
 
 ---
 
@@ -127,7 +127,7 @@ Phase 2：在 Peek 內對 `getUser` 再次執行 Peek，**同一個 Peek 區塊*
 
 - 提供 Action **Peek Definition**，Action ID：`com.pino.peekdefinition.PeekDefinition`（帶前綴，避免與其他 plugin 衝突）。
 - 加入以下選單：
-  - Editor 右鍵選單（`EditorPopupMenu` 的 GoTo 區段）
+  - Editor 右鍵選單第一層，位於「Go To」子選單正上方（`EditorPopupMenu1`，anchor before `EditorPopupMenu.GoTo`）
   - 主選單 Navigate（`GoToMenu`）
 - **不綁定預設快捷鍵**（Keymap 可被使用者修改、各 OS 不同、易與其他 plugin 衝突），使用者可在 `Settings → Keymap → Peek Definition` 自行設定。
 - 所有 Peek 操作都提供獨立 Action（見 FR-6 快捷鍵表），README 列出 VS 對應鍵供使用者自行綁定，並註明與 IntelliJ 預設 Keymap 的衝突（例如 `Alt+F12` = Terminal、`F8` = Step Over、`Shift+Esc` = Hide Tool Window）。
@@ -185,7 +185,10 @@ AC：
 - **不使用** `JBPopup` / `JBPopupFactory` 作為主要 UI（會遮擋程式碼、無法持續存在）。
   - 例外：錯誤提示（`HintManager`）與 Phase 2 的候選選擇清單可使用 popup。
 - Peek Panel 以 **Block Inlay** 放在 caret 所在行的**下方**。
-- 一個 Host Editor 同時只存在一個 Peek Panel；在其他位置再次 Peek 時，關閉舊的並在新位置開啟。
+- **一個 Host Editor 可同時開多個 Peek Panel**（每一行最多一個）。這點與 VS 不同：VS 同時只保留一個 Peek。
+  - 在**其他行**執行 Peek：開新的 Peek Panel，既有的保留。
+  - 在**已有 Peek 的同一行**再次執行 Peek：取代該行的 Peek。
+  - 在某個 Peek 的 Viewer 內執行 Peek：只取代那一個 Peek（位置不變）。
 - 同一檔案在 split 出來的多個 Editor 中，各自獨立（Inlay 屬於 Editor，不屬於 Document）。
 
 AC：
@@ -216,7 +219,7 @@ AC：
 | Viewer 內捲動（滑鼠滾輪） | 捲動 Viewer；到頂 / 到底後不搶 Host Editor 的捲動 |
 | 水平捲動 | Viewer 自身提供水平捲軸，長行不撐寬 Host Editor |
 | Viewer 內 Ctrl/⌘+Click | 以一般方式開啟該 symbol 的檔案（行為同 Go to Declaration） |
-| Viewer 內執行 Peek Definition | MVP：以新 Target 取代目前 Peek 內容；Phase 2：推入 history |
+| Viewer 內執行 Peek Definition | MVP：以新 Target 取代**該** Peek 的內容（其他 Peek 不受影響）；Phase 2：推入該 Peek 的 history |
 | Viewer 內移動 caret、選取與複製 | 允許；Host Editor 也可同時操作（兩者皆保持可用） |
 | 從 Viewer 拖曳文字到 Host Editor | 允許（複製，不從 Viewer 刪除） |
 | Viewer 內輸入文字 | MVP 不允許（唯讀）；Phase 2 見 §6.4 |
@@ -237,8 +240,8 @@ AC：
 
 **Esc 行為**（需以 `editorActionHandler`（`EditorEscape`）實作並保留原本 handler）：
 
-1. 焦點在 Peek Viewer：若有選取則先取消選取；否則關閉 Peek，焦點回到 Host Editor 原 caret 位置。
-2. 焦點在 Host Editor：先交給原本的 Esc 行為（關閉 lookup、取消選取、移除多游標）；若原本沒有事可做且存在 Peek，則關閉 Peek。
+1. 焦點在 Peek Viewer：若有選取則先取消選取；否則關閉**該** Peek，焦點回到 Host Editor 原 caret 位置。
+2. 焦點在 Host Editor：先交給原本的 Esc 行為（關閉 lookup、取消選取、移除多游標）；若原本沒有事可做且存在 Peek，則關閉此 Editor 的**全部** Peek。
 
 AC：
 - Peek 開啟時，Host Editor 的程式碼補全 popup 仍可用 Esc 正常關閉，且不會同時關閉 Peek。
@@ -368,7 +371,7 @@ AC：
 | 背景 resolve | `ReadAction.nonBlocking(...).inSmartMode(project).finishOnUiThread(...)` |
 | 建立唯讀 Viewer | `EditorFactory.createViewer(document, project, EditorKind.PREVIEW)` |
 | 語法高亮 | `EditorHighlighterFactory.createEditorHighlighter(project, virtualFile)` → `EditorEx.setHighlighter` |
-| 在 Editor 中嵌入 Swing 元件 | 候選 A：`EditorEmbeddedComponentManager`（Jupyter / Notebook 使用）<br>候選 B：`InlayModel.addBlockElement(...)` + 自訂 `EditorCustomElementRenderer`（只能 paint，無法直接放 Swing 元件） |
+| 在 Editor 中嵌入 Swing 元件 | ✅ 採用：`ComponentInlayKt.addComponentInlay(editor, offset, InlayProperties, component, ComponentInlayAlignment.FIT_VIEWPORT_WIDTH)`<br>備案：`EditorEmbeddedComponentManager`（位於 `impl` 套件）<br>不可行：`InlayModel.addBlockElement` + `EditorCustomElementRenderer`（只能 paint） |
 | 標示 Target 範圍 | `MarkupModel.addRangeHighlighter`、`RangeMarker` |
 | PSI 參考保存 | `SmartPointerManager.createSmartPsiElementPointer` |
 | 錯誤提示 | `HintManager.showErrorHint` |
@@ -376,6 +379,8 @@ AC：
 | Implementation 搜尋（Phase 2） | `DefinitionsScopedSearch` |
 
 > ⚠️ **關鍵技術風險**：`InlayModel.addBlockElement` 的 renderer 只能 paint，不能直接放入可互動的 `EditorEx`。要把真正的 Editor 嵌進 Inlay，需使用 `EditorEmbeddedComponentManager` 或平台較新版本提供的 component inlay API。這些 API 部分位於 `impl` 套件或標示為 experimental，**必須在 POC 以選定的 since-build 驗證**，並記錄使用的 API 與版本限制。
+>
+> **POC 結果（2026-09-23）**：採用 `com.intellij.openapi.editor.ComponentInlayKt.addComponentInlay`。它在公開套件，但標示為 `@ApiStatus.Experimental`。已用 `javap` 確認 2024.2、2024.3、2025.1、2026.2 的方法簽章相同（2026.2 起移到 `intellij.platform.ide.impl.jar`，對 plugin 沒有影響）。`verifyPlugin` 會對 Experimental API 發出警告，這是預期中的。若日後此 API 被移除，備案是 `EditorEmbeddedComponentManager`。
 
 ### 9.2 Package 結構
 
@@ -440,18 +445,22 @@ userService.getUser(id)  →  PsiMethod  →  Block Inlay 內的真實 EditorEx
 
 ### 驗證清單
 
-| # | 項目 | 通過標準 |
-| --- | --- | --- |
-| P1 | 在 Inlay 中嵌入可互動的 `EditorEx` | 可捲動、可選取、可取得焦點 |
-| P2 | 選定嵌入 API（候選 A / B / component inlay）並確認 since-build | 記錄 API 名稱與最低版本 |
-| P3 | Lexer 層級語法高亮 | 與一般 Java Editor 一致 |
-| P4 | Semantic highlighting | 記錄：目標檔案開啟 / 未開啟時各自的表現 |
-| P5 | Viewer 內 Ctrl/⌘+Click | 可跳轉到正確位置 |
-| P6 | Host Editor 不跳頁 | 開關 Peek 前後 visible area 一致 |
-| P7 | 原始 Document 未被修改 | modification stamp 不變 |
-| P8 | Theme 切換 | Light ↔ Darcula 即時更新 |
-| P9 | 移除 Inlay 與釋放 Viewer | 關閉 Project 無 leak 錯誤 |
-| P10 | 滑鼠滾輪 | Viewer 與 Host Editor 捲動不互相干擾 |
+| # | 項目 | 通過標準 | 狀態 |
+| --- | --- | --- | --- |
+| P1 | 在 Inlay 中嵌入可互動的 `EditorEx` | 可捲動、可選取、可取得焦點 | ⏳ 需在 `runIde` 手動驗證 |
+| P2 | 選定嵌入 API 並確認 since-build | 記錄 API 名稱與最低版本 | ✅ `addComponentInlay`，242+（見 §9.1） |
+| P3 | Lexer 層級語法高亮 | 與一般 Java Editor 一致 | ⏳ 手動 |
+| P4 | Semantic highlighting | 記錄：目標檔案開啟 / 未開啟時各自的表現 | ⏳ 手動 |
+| P5 | Viewer 內 Ctrl/⌘+Click | 可跳轉到正確位置 | ⏳ 手動 |
+| P6 | Host Editor 不跳頁 | 開關 Peek 前後 visible area 一致 | ⏳ 手動 |
+| P7 | 原始 Document 未被修改 | modification stamp 不變 | ✅ 自動測試 |
+| P8 | Theme 切換 | Light ↔ Darcula 即時更新 | ⏳ 手動 |
+| P9 | 移除 Inlay 與釋放 Viewer | 關閉 Project 無 leak 錯誤 | ✅ 自動測試（close、重新 Peek、Host Editor 釋放；測試框架在 tearDown 會檢查未釋放的 editor） |
+| P10 | 滑鼠滾輪 | Viewer 與 Host Editor 捲動不互相干擾 | ⏳ 手動 |
+
+另外已有自動測試涵蓋：FR-2 overload / constructor / interface method / 找不到定義 / caret 在宣告上，以及 FR-6 的 Esc 行為（有選取時先取消選取，再按一次才關閉 Peek）。
+
+> 測試環境注意：light test fixture 在此專案沒有 JDK（`java.lang.*` 無法解析），測試資料一律使用專案內自訂的型別。
 
 POC 通過後才開始 MVP；若 P1/P2 不通過，需重新評估 D1 與整體 UI 方案。
 

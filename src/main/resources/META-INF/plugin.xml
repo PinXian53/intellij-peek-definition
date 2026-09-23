@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>com.pino.intellij-peek-definition</id>
+    <name>Peek Definition</name>
+    <vendor>Pino</vendor>
+    <description><![CDATA[
+    <p>Visual Studio style <b>Peek Definition</b>: shows the definition of the symbol at the caret
+    inside the current editor, below the current line, without leaving the file.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <editorFactoryListener implementation="com.pino.peekdefinition.lifecycle.PeekEditorFactoryListener"/>
+        <editorActionHandler action="EditorEscape" order="first"
+                             implementationClass="com.pino.peekdefinition.action.PeekEscapeHandler"/>
+    </extensions>
+
+    <actions>
+        <!-- No default shortcut (Spec FR-1): users bind one in Settings | Keymap. -->
+        <action id="com.pino.peekdefinition.PeekDefinition"
+                class="com.pino.peekdefinition.action.PeekDefinitionAction"
+                text="Peek Definition"
+                description="Show the definition of the symbol at the caret inside the current editor">
+            <add-to-group group-id="EditorPopupMenu1" anchor="before" relative-to-action="EditorPopupMenu.GoTo"/>
+            <add-to-group group-id="GoToCodeGroup" anchor="after" relative-to-action="GotoDeclaration"/>
+        </action>
+    </actions>
+</idea-plugin>
