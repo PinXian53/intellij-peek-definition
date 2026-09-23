@@ -7,6 +7,8 @@ implementation without leaving your file or losing your place.
 Unlike Quick Definition (`Ctrl+Shift+I`), the Peek is not a popup: it does not cover your code,
 it stays open while you keep working, and you can open several at once.
 
+![Peek Definition showing a method's definition embedded below the line that calls it](img/peek-definition.png)
+
 ## Features
 
 - **Embedded in the editor**: the definition opens between the lines of your code, with the
