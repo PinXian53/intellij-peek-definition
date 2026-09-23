@@ -50,7 +50,7 @@ In the Peek:
 | Action | Result |
 | --- | --- |
 | Click the title bar | Collapse / expand |
-| Double-click the title bar | Open the file in a regular editor tab |
+| **Open in Editor** button | Open the file in a regular editor tab |
 | **▼** / **▶** button | Collapse / expand |
 | **⋮** menu | Open in Editor, Collapse / Expand, Method Only / Whole File, Show Line Numbers, Close |
 | **Esc** inside a Peek, or its **×** button | Close that Peek |

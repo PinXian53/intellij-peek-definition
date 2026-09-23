@@ -81,8 +81,7 @@ final class PeekPanel extends JPanel {
 
         JBLabel titleLabel = new JBLabel(target.title(), target.icon(), JBLabel.LEFT);
         titleLabel.setFont(JBFont.label().biggerOn(TITLE_FONT_INCREASE));
-        titleLabel.setToolTipText(target.file().getName()
-                + " — click to collapse / expand, double-click to open in editor");
+        titleLabel.setToolTipText(target.file().getName() + " — click to collapse / expand");
 
         JPanel right = new JPanel();
         right.setOpaque(false);
@@ -93,6 +92,9 @@ final class PeekPanel extends JPanel {
             locationLabel.setBorder(JBUI.Borders.emptyRight(8));
             right.add(locationLabel);
         }
+        right.add(new InplaceButton(
+                iconButton("Open in Editor", AllIcons.Actions.EditSource, AllIcons.Actions.EditSource),
+                e -> onPromote.run()));
         // InplaceButton reports the MouseEvent, not itself, as the ActionEvent source, so keep a reference.
         InplaceButton[] moreButton = new InplaceButton[1];
         moreButton[0] = new InplaceButton(iconButton("More", AllIcons.Actions.More, AllIcons.Actions.More),
@@ -110,18 +112,13 @@ final class PeekPanel extends JPanel {
         header.add(right, BorderLayout.EAST);
         // The label needs its own listener: its tooltip makes it a mouse target, so clicks never reach the header.
         // Pressed rather than clicked: a click is dropped if the mouse moves between press and release.
-        // Single click toggles right away instead of waiting out the double-click interval; on a double click
-        // the first press collapses and the second promotes, which closes the Peek anyway.
+        // Every press toggles, so a double click collapses and expands again rather than doing anything else;
+        // opening the file has its own button.
         MouseAdapter headerClicks = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (!SwingUtilities.isLeftMouseButton(e)) {
-                    return;
-                }
-                if (e.getClickCount() == 1) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     setCollapsed(!collapsed);
-                } else if (e.getClickCount() == 2) {
-                    onPromote.run();
                 }
             }
         };

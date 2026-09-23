@@ -62,18 +62,24 @@ public class PeekPanelTest extends BasePlatformTestCase {
         }
     }
 
-    public void testDoubleClickOnTitlePromotes() {
-        JBLabel title = UIUtil.findComponentOfType(panel(), JBLabel.class);
+    public void testDoubleClickOnTitleDoesNotOpenTheFile() {
+        PeekPanel panel = panel();
+        JBLabel title = UIUtil.findComponentOfType(panel, JBLabel.class);
 
+        press(title, 1);
         press(title, 2);
 
-        assertEquals(1, promoted.get());
+        assertEquals(0, promoted.get());
+        assertFalse("collapsed and expanded again", panel.isCollapsed());
     }
 
-    public void testDoubleClickOnHeaderBackgroundPromotes() {
-        JBLabel title = UIUtil.findComponentOfType(panel(), JBLabel.class);
+    public void testOpenInEditorButtonOpensTheFile() {
+        InplaceButton open = UIUtil.findComponentsOfType(panel(), InplaceButton.class).stream()
+                .filter(button -> "Open in Editor".equals(button.getToolTipText()))
+                .findFirst()
+                .orElseThrow();
 
-        press((JComponent) title.getParent(), 2);
+        open.doClick();
 
         assertEquals(1, promoted.get());
     }
@@ -154,12 +160,12 @@ public class PeekPanelTest extends BasePlatformTestCase {
         assertTrue("outline is painted along the top edge", (image.getRGB(200, 0) >>> 24) > 0);
     }
 
-    public void testHeaderHasCollapseMoreAndCloseButtons() {
+    public void testHeaderButtons() {
         List<String> tooltips = UIUtil.findComponentsOfType(panel(), InplaceButton.class).stream()
                 .map(InplaceButton::getToolTipText)
                 .toList();
 
-        assertEquals(List.of("Collapse", "More", "Close (Esc)"), tooltips);
+        assertEquals(List.of("Collapse", "Open in Editor", "More", "Close (Esc)"), tooltips);
     }
 
     public void testMoreMenuEntries() {

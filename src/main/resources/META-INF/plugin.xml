@@ -30,8 +30,8 @@
     <ul>
       <li>Put the caret on a method call or constructor and choose <b>Peek Definition</b> from the editor's
       right-click menu or from <b>Navigate</b>.</li>
-      <li>Click the Peek's title bar to collapse or expand it. Double-click it to open the file in a
-      regular editor tab.</li>
+      <li>Click the Peek's title bar to collapse or expand it. Its <b>Open in Editor</b> button opens the
+      file in a regular editor tab.</li>
       <li>The <b>&#8942;</b> menu in the header opens the file in an editor tab, switches between the method
       only and the whole file, and shows or hides line numbers.</li>
       <li><b>Esc</b> inside a Peek (or its <b>&times;</b> button) closes that Peek. <b>Esc</b> in the
