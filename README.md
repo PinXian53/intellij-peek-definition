@@ -20,7 +20,7 @@
 right below the current line, inside the editor you are working in, so you can read an
 implementation without leaving your file or losing your place.
 
-Unlike Quick Definition (`Ctrl+Shift+I`), the Peek is not a popup: it does not cover your code,
+Unlike Quick Definition, the Peek is not a popup: it does not cover your code,
 it stays open while you keep working, and you can open several at once.
 
 ![Peek Definition showing a method's definition embedded below the line that calls it](img/peek-definition.png)
