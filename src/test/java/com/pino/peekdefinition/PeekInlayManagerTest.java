@@ -56,6 +56,26 @@ public class PeekInlayManagerTest extends LightJavaCodeInsightFixtureTestCase {
         assertEquals(stamp, host.getDocument().getModificationStamp());
     }
 
+    public void testViewerShowsOnlyTheDefinitionLines() {
+        Editor host = configure();
+        PeekSession session = show(host, WORK_LINE);
+        var viewer = session.viewer();
+        var document = viewer.getDocument();
+        int workStart = document.getText().indexOf("    void work()");
+        int workEnd = document.getText().indexOf("}", workStart) + 1;
+
+        assertTrue("text above the method is hidden", viewer.getFoldingModel().isOffsetCollapsed(0));
+        assertTrue("text below the method is hidden",
+                viewer.getFoldingModel().isOffsetCollapsed(document.getTextLength() - 1));
+        assertEquals(0, viewer.offsetToVisualPosition(workStart).line);
+        assertEquals(2, viewer.offsetToVisualPosition(workEnd).line);
+        assertEquals("nothing is visible after the method's last line",
+                2, viewer.offsetToVisualPosition(document.getTextLength()).line);
+        for (var region : viewer.getFoldingModel().getAllFoldRegions()) {
+            assertTrue("hidden text cannot be expanded", region.shouldNeverExpand());
+        }
+    }
+
     public void testCloseRemovesInlayAndReleasesViewer() {
         Editor host = configure();
         PeekSession session = show(host, WORK_LINE);

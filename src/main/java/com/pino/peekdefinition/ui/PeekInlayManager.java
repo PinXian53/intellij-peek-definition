@@ -10,7 +10,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.Inlay;
 import com.intellij.openapi.editor.InlayProperties;
-import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -70,12 +69,12 @@ public final class PeekInlayManager {
         Disposable disposable = Disposer.newDisposable("PeekDefinition");
         Disposer.register(PeekProjectService.getInstance(project), disposable);
 
-        EditorEx viewer = PeekViewerFactory.create(project, document, target);
+        boolean methodOnly = PeekSettings.isMethodOnly();
+        boolean lineNumbers = PeekSettings.isLineNumbersShown();
+        EditorEx viewer = PeekViewerFactory.create(project, document, target, methodOnly, lineNumbers);
         Disposer.register(disposable, () -> EditorFactory.getInstance().releaseEditor(viewer));
 
-        int targetLines = document.getLineNumber(target.range().getEndOffset())
-                - document.getLineNumber(target.range().getStartOffset()) + 1;
-        PeekPanel panel = new PeekPanel(viewer, target.title(), targetLines,
+        PeekPanel panel = new PeekPanel(viewer, target, methodOnly, lineNumbers,
                 () -> close(viewer), () -> promote(viewer));
 
         int lineEnd = host.getDocument().getLineEndOffset(anchorLine);
@@ -95,7 +94,7 @@ public final class PeekInlayManager {
 
         PeekSession session = new PeekSession(host, viewer, inlay, disposable);
         whenFirstSized(viewer.getScrollPane().getViewport(), () -> ApplicationManager.getApplication()
-                .invokeLater(() -> reveal(session, target), __ -> session.isDisposed()));
+                .invokeLater(() -> reveal(session), __ -> session.isDisposed()));
         return session;
     }
 
@@ -157,10 +156,9 @@ public final class PeekInlayManager {
         });
     }
 
-    private static void reveal(PeekSession session, PeekTarget target) {
+    private static void reveal(PeekSession session) {
         EditorEx viewer = session.viewer();
-        int startLine = viewer.getDocument().getLineNumber(target.range().getStartOffset());
-        viewer.getScrollingModel().scrollVertically(viewer.logicalPositionToXY(new LogicalPosition(startLine, 0)).y);
+        PeekViewerFactory.revealTarget(viewer);
 
         Editor host = session.host();
         Rectangle bounds = session.inlay().getBounds();

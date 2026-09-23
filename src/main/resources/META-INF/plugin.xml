@@ -14,9 +14,11 @@
     <ul>
       <li><b>Embedded in the editor</b>: the definition opens between the lines of your code, with the
       lines below moved down instead of hidden.</li>
-      <li><b>Real editor, real file</b>: the Peek shows the whole definition file, scrolled to the
-      definition, which is highlighted. It uses your color scheme, font and theme, and updates live
-      when the file changes.</li>
+      <li><b>Just the definition</b>: the Peek shows only the method, with its signature and module in
+      the header, like Quick Definition. Switch to the whole file or turn on line numbers from the
+      <b>&#8942;</b> menu; your choice is remembered for the next Peek. It is a real editor on the real file:
+      it uses your color scheme, font and theme, <i>Ctrl+Click</i> works inside it, and it updates live when
+      the file changes.</li>
       <li><b>Accurate</b>: definitions are resolved the same way as <i>Go to Declaration</i>, so overloads,
       constructors and library classes (attached or decompiled sources) resolve correctly.</li>
       <li><b>Several Peeks at once</b>: peek from different lines and every Peek stays open. Peeking
@@ -30,6 +32,8 @@
       right-click menu or from <b>Navigate</b>.</li>
       <li>Click the Peek's title bar to collapse or expand it. Double-click it to open the file in a
       regular editor tab.</li>
+      <li>The <b>&#8942;</b> menu in the header opens the file in an editor tab, switches between the method
+      only and the whole file, and shows or hides line numbers.</li>
       <li><b>Esc</b> inside a Peek (or its <b>&times;</b> button) closes that Peek. <b>Esc</b> in the
       editor closes all of its Peeks.</li>
     </ul>

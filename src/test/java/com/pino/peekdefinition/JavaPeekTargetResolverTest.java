@@ -49,9 +49,15 @@ public class JavaPeekTargetResolverTest extends LightJavaCodeInsightFixtureTestC
         assertTargetStartsWith("Repo r = null; r.fi<caret>nd(new Id());", "User find(Id id);");
     }
 
-    public void testTitle() {
+    public void testTitleIsSignatureLikeQuickDefinition() {
         PeekTarget target = resolveFound("new UserService().getU<caret>ser(new Name());");
-        assertEquals("UserService.java — UserService.getUser(Name)", target.title());
+        assertEquals("getUser(Name)", target.title());
+    }
+
+    public void testLocationIsModuleName() {
+        PeekTarget target = resolveFound("new UserService().getU<caret>ser(new Name());");
+        assertEquals(getModule().getName(), target.location());
+        assertNotNull(target.locationIcon());
     }
 
     public void testNothingUnderCaret() {

@@ -1,15 +1,19 @@
 package com.pino.peekdefinition.resolve;
 
 import com.intellij.codeInsight.TargetElementUtil;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.LibraryOrderEntry;
+import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import com.intellij.psi.PsiNamedElement;
@@ -19,6 +23,9 @@ import com.intellij.psi.util.PsiFormatUtil;
 import com.intellij.psi.util.PsiFormatUtilBase;
 import com.pino.peekdefinition.model.PeekTarget;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.Icon;
 
 public final class JavaPeekTargetResolver implements PeekTargetResolver {
 
@@ -57,12 +64,15 @@ public final class JavaPeekTargetResolver implements PeekTargetResolver {
             return new PeekResolveResult.Failed(NOT_AVAILABLE);
         }
 
+        Owner owner = ownerOf(project, virtualFile);
         return new PeekResolveResult.Found(new PeekTarget(
                 SmartPointerManager.createPointer(definition),
                 virtualFile,
                 range,
                 definition.getTextOffset(),
-                virtualFile.getName() + " — " + describe(definition)));
+                describe(definition),
+                owner == null ? null : owner.name(),
+                owner == null ? null : owner.icon()));
     }
 
     private static boolean isCaretOnName(Project project, Editor editor, int offset, PsiElement definition) {
@@ -76,28 +86,37 @@ public final class JavaPeekTargetResolver implements PeekTargetResolver {
         return owner.getNameIdentifier().getTextRange().containsOffset(offset);
     }
 
+    /** Same shape as Quick Definition's header: {@code getUser(Long)}, or the plain name of anything else. */
     private static String describe(PsiElement element) {
         if (element instanceof PsiMethod method) {
-            String signature = PsiFormatUtil.formatMethod(method, PsiSubstitutor.EMPTY,
+            return PsiFormatUtil.formatMethod(method, PsiSubstitutor.EMPTY,
                     PsiFormatUtilBase.SHOW_NAME | PsiFormatUtilBase.SHOW_PARAMETERS,
                     PsiFormatUtilBase.SHOW_TYPE);
-            return qualify(method, signature);
         }
-        if (element instanceof PsiClass psiClass) {
-            String qualifiedName = psiClass.getQualifiedName();
-            return qualifiedName != null ? qualifiedName : String.valueOf(psiClass.getName());
-        }
-        if (element instanceof PsiMember member) {
-            return qualify(member, String.valueOf(member.getName()));
-        }
-        if (element instanceof PsiNamedElement named) {
-            return String.valueOf(named.getName());
+        if (element instanceof PsiNamedElement named && named.getName() != null) {
+            return named.getName();
         }
         return "";
     }
 
-    private static String qualify(PsiMember member, String name) {
-        PsiClass owner = member.getContainingClass();
-        return owner == null || owner.getName() == null ? name : owner.getName() + "." + name;
+    private record Owner(String name, Icon icon) {
+    }
+
+    /** The module a source file belongs to, or the library / JDK a library file comes from. */
+    private static @Nullable Owner ownerOf(Project project, VirtualFile file) {
+        ProjectFileIndex index = ProjectFileIndex.getInstance(project);
+        Module module = index.getModuleForFile(file);
+        if (module != null) {
+            return new Owner(module.getName(), AllIcons.Nodes.Module);
+        }
+        for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
+            if (entry instanceof LibraryOrderEntry) {
+                return new Owner(entry.getPresentableName(), AllIcons.Nodes.PpLib);
+            }
+            if (entry instanceof JdkOrderEntry) {
+                return new Owner(entry.getPresentableName(), AllIcons.Nodes.PpJdk);
+            }
+        }
+        return null;
     }
 }

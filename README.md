@@ -29,9 +29,10 @@ it stays open while you keep working, and you can open several at once.
 
 - **Embedded in the editor**: the definition opens between the lines of your code, with the
   lines below moved down instead of hidden.
-- **Real editor, real file**: the Peek shows the whole definition file, scrolled to the
-  definition, which is highlighted. It uses your color scheme, font and theme, and updates live
-  when the file changes.
+- **Just the definition**: the Peek shows only the method, with its signature and module in the
+  header, like Quick Definition. Switch to the whole file or turn on line numbers from the **⋮** menu;
+  your choice is remembered for the next Peek. It is a real editor on the real file: it uses your
+  color scheme, font and theme, *Ctrl+Click* works inside it, and it updates live when the file changes.
 - **Accurate**: definitions are resolved the same way as *Go to Declaration*, so overloads,
   constructors and library classes (attached or decompiled sources) resolve correctly.
 - **Several Peeks at once**: peek from different lines and every Peek stays open. Peeking from
@@ -50,6 +51,8 @@ In the Peek:
 | --- | --- |
 | Click the title bar | Collapse / expand |
 | Double-click the title bar | Open the file in a regular editor tab |
+| **▼** / **▶** button | Collapse / expand |
+| **⋮** menu | Open in Editor, Collapse / Expand, Method Only / Whole File, Show Line Numbers, Close |
 | **Esc** inside a Peek, or its **×** button | Close that Peek |
 | **Esc** in the editor | Close all Peeks of the editor |
 | Peek Definition inside a Peek | Replace its content with the new definition |
