@@ -5,6 +5,8 @@ import com.pino.peekdefinition.model.PeekTarget;
 import com.pino.peekdefinition.resolve.JavaPeekTargetResolver;
 import com.pino.peekdefinition.resolve.PeekResolveResult;
 
+import java.util.List;
+
 /**
  * Resolution goes through IntelliJ's own resolve, never by method name.
  * The light fixture here has no JDK, so overloads use project types instead of Long / String.
@@ -49,6 +51,35 @@ public class JavaPeekTargetResolverTest extends LightJavaCodeInsightFixtureTestC
         assertTargetStartsWith("Repo r = null; r.fi<caret>nd(new Id());", "User find(Id id);");
     }
 
+    public void testInterfaceMethodOffersItsImplementations() {
+        myFixture.addClass("class RepoB implements Repo { public User find(Id id) { return null; } }");
+        myFixture.addClass("class RepoA implements Repo { public User find(Id id) { return new User(); } }");
+
+        PeekResolveResult.Found found = resolveFoundResult("Repo r = null; r.fi<caret>nd(new Id());");
+
+        assertEquals(List.of("Repo", "RepoA", "RepoB"),
+                found.candidates().stream().map(PeekTarget::container).toList());
+        assertSame("the declaration itself comes first", found.target(), found.candidates().get(0));
+        assertEquals("find(Id)", found.candidates().get(1).title());
+    }
+
+    public void testAbstractMethodOffersItsImplementations() {
+        myFixture.addClass("abstract class Base { abstract void run(); }");
+        myFixture.addClass("class Impl extends Base { void run() {} }");
+
+        PeekResolveResult.Found found = resolveFoundResult("Base b = null; b.r<caret>un();");
+
+        assertEquals(List.of("Base", "Impl"), found.candidates().stream().map(PeekTarget::container).toList());
+    }
+
+    public void testInterfaceMethodWithoutImplementationsOffersNothing() {
+        assertEmpty(resolveFoundResult("Repo r = null; r.fi<caret>nd(new Id());").candidates());
+    }
+
+    public void testConcreteMethodOffersNothing() {
+        assertEmpty(resolveFoundResult("new UserService().getU<caret>ser(new Id());").candidates());
+    }
+
     public void testTitleIsSignatureLikeQuickDefinition() {
         PeekTarget target = resolveFound("new UserService().getU<caret>ser(new Name());");
         assertEquals("getUser(Name)", target.title());
@@ -85,10 +116,14 @@ public class JavaPeekTargetResolverTest extends LightJavaCodeInsightFixtureTestC
     }
 
     private PeekTarget resolveFound(String statement) {
+        return resolveFoundResult(statement).target();
+    }
+
+    private PeekResolveResult.Found resolveFoundResult(String statement) {
         configure(statement);
         PeekResolveResult result = resolve();
         assertTrue(String.valueOf(result), result instanceof PeekResolveResult.Found);
-        return ((PeekResolveResult.Found) result).target();
+        return (PeekResolveResult.Found) result;
     }
 
     private void configure(String statement) {

@@ -13,6 +13,7 @@ import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBFont;
@@ -27,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -34,6 +36,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -68,8 +71,13 @@ final class PeekPanel extends JPanel {
     private boolean methodOnly;
     private boolean lineNumbersShown;
 
-    PeekPanel(@NotNull EditorEx viewer, @NotNull PeekTarget target, boolean methodOnly, boolean lineNumbersShown,
-              @NotNull Runnable onClose, @NotNull Runnable onPromote) {
+    /**
+     * @param candidates an interface method and its implementations; when there is more than one, the header
+     *                   offers them in a dropdown and {@code onSwitch} is called with the one picked
+     */
+    PeekPanel(@NotNull EditorEx viewer, @NotNull PeekTarget target, @NotNull List<PeekTarget> candidates,
+              boolean methodOnly, boolean lineNumbersShown,
+              @NotNull Runnable onClose, @NotNull Runnable onPromote, @NotNull Consumer<PeekTarget> onSwitch) {
         super(new BorderLayout());
         this.viewer = viewer;
         this.methodOnly = methodOnly;
@@ -86,6 +94,9 @@ final class PeekPanel extends JPanel {
         JPanel right = new JPanel();
         right.setOpaque(false);
         right.setLayout(new BoxLayout(right, BoxLayout.X_AXIS));
+        if (candidates.size() > 1) {
+            right.add(candidateChooser(target, candidates, onSwitch));
+        }
         if (target.location() != null) {
             JBLabel locationLabel = new JBLabel(target.location(), target.locationIcon(), JBLabel.LEFT);
             locationLabel.setForeground(NamedColorUtil.getInactiveTextColor());
@@ -269,6 +280,40 @@ final class PeekPanel extends JPanel {
                 return ActionUpdateThread.EDT;
             }
         };
+    }
+
+    /** Dropdown naming the class shown, e.g. {@code UserServiceImpl (2/3) ▾}; opens the list of candidates. */
+    private static JBLabel candidateChooser(PeekTarget current, List<PeekTarget> candidates,
+                                            Consumer<PeekTarget> onSwitch) {
+        int index = candidates.indexOf(current);
+        JBLabel chooser = new JBLabel(current.container() + " (" + (index + 1) + "/" + candidates.size() + ")",
+                AllIcons.General.ArrowDown, JBLabel.LEFT);
+        chooser.setHorizontalTextPosition(JBLabel.LEFT);
+        chooser.setToolTipText("Choose implementation (" + (candidates.size() - 1) + " found)");
+        chooser.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        chooser.setBorder(JBUI.Borders.emptyRight(8));
+        chooser.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                JBPopupFactory.getInstance()
+                        .createPopupChooserBuilder(candidates)
+                        .setRenderer(SimpleListCellRenderer.<PeekTarget>create((label, candidate, i) -> {
+                            label.setIcon(candidate.icon());
+                            label.setText(candidate.location() == null
+                                    ? candidate.container()
+                                    : candidate.container() + "  —  " + candidate.location());
+                        }))
+                        .setSelectedValue(current, true)
+                        .setItemChosenCallback(chosen -> {
+                            if (chosen != current) {
+                                onSwitch.accept(chosen);
+                            }
+                        })
+                        .createPopup()
+                        .showUnderneathOf(chooser);
+            }
+        });
+        return chooser;
     }
 
     private void showMenu(InplaceButton anchor) {

@@ -35,6 +35,8 @@ it stays open while you keep working, and you can open several at once.
   color scheme, font and theme, *Ctrl+Click* works inside it, and it updates live when the file changes.
 - **Accurate**: definitions are resolved the same way as *Go to Declaration*, so overloads,
   constructors and library classes (attached or decompiled sources) resolve correctly.
+- **Implementations**: peeking an interface or abstract method adds a dropdown to the header listing its
+  implementations, like Quick Definition; pick one to show it in the same Peek.
 - **Several Peeks at once**: peek from different lines and every Peek stays open. Peeking from
   inside a Peek replaces its content with the new definition.
 - **Read-only**: opening, switching and closing a Peek never modifies your code.

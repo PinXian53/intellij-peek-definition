@@ -118,7 +118,8 @@ public class PeekInlayManagerTest extends LightJavaCodeInsightFixtureTestCase {
         PeekSession rest = show(host, REST_LINE);
 
         // What Peek-from-inside-a-viewer does: replace that Peek, anchored where it was.
-        PeekSession replaced = PeekInlayManager.show(host, work.inlay().getOffset(), resolve(host, REST_LINE), work);
+        PeekSession replaced = PeekInlayManager.show(host, work.inlay().getOffset(), resolve(host, REST_LINE), work,
+                List.of());
 
         assertTrue(work.isDisposed());
         assertEquals(WORK_LINE, replaced.anchorLine());

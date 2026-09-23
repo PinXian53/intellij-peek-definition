@@ -63,7 +63,8 @@ public final class PeekDefinitionAction extends AnAction {
                 .expireWhen(() -> editor.isDisposed() || host.isDisposed())
                 .finishOnUiThread(ModalityState.defaultModalityState(), result -> {
                     switch (result) {
-                        case PeekResolveResult.Found found -> PeekInlayManager.show(host, anchorOffset, found.target(), session);
+                        case PeekResolveResult.Found found ->
+                                PeekInlayManager.show(host, anchorOffset, found.target(), session, found.candidates());
                         case PeekResolveResult.Failed failed -> HintManager.getInstance().showErrorHint(editor, failed.message());
                     }
                 })

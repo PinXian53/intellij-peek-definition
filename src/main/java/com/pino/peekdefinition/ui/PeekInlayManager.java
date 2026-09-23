@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.JComponent;
 import java.awt.Rectangle;
+import java.util.List;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -36,17 +37,20 @@ public final class PeekInlayManager {
     private PeekInlayManager() {
     }
 
-    /** {@link #show(Editor, int, PeekTarget, PeekSession)} without an explicit Peek to replace. */
+    /** {@link #show(Editor, int, PeekTarget, PeekSession, List)} without a Peek to replace or implementations. */
     public static @Nullable PeekSession show(@NotNull Editor host, int anchorOffset, @NotNull PeekTarget target) {
-        return show(host, anchorOffset, target, null);
+        return show(host, anchorOffset, target, null, List.of());
     }
 
     /**
      * Shows {@code target} below the line containing {@code anchorOffset} in {@code host}. Peeks on other
      * lines stay open; {@code replacing}, or else a Peek already on that line, is closed first.
+     *
+     * @param candidates an interface method and its implementations, offered in the header to switch to;
+     *                   empty when there is nothing to choose from
      */
     public static @Nullable PeekSession show(@NotNull Editor host, int anchorOffset, @NotNull PeekTarget target,
-                                             @Nullable PeekSession replacing) {
+                                             @Nullable PeekSession replacing, @NotNull List<PeekTarget> candidates) {
         Project project = host.getProject();
         if (project == null || host.isDisposed()) {
             return null;
@@ -74,8 +78,8 @@ public final class PeekInlayManager {
         EditorEx viewer = PeekViewerFactory.create(project, document, target, methodOnly, lineNumbers);
         Disposer.register(disposable, () -> EditorFactory.getInstance().releaseEditor(viewer));
 
-        PeekPanel panel = new PeekPanel(viewer, target, methodOnly, lineNumbers,
-                () -> close(viewer), () -> promote(viewer));
+        PeekPanel panel = new PeekPanel(viewer, target, candidates, methodOnly, lineNumbers,
+                () -> close(viewer), () -> promote(viewer), candidate -> switchTo(viewer, candidate, candidates));
 
         int lineEnd = host.getDocument().getLineEndOffset(anchorLine);
         Inlay<?> inlay = ComponentInlayKt.addComponentInlay(host, lineEnd,
@@ -119,6 +123,14 @@ public final class PeekInlayManager {
     /** Closes every Peek {@code host} has. */
     public static void closeAll(@NotNull Editor host) {
         PeekSession.ofHost(host).forEach(PeekSession::close);
+    }
+
+    /** Replaces the Peek of {@code viewer} with another of its candidates, in the same place. */
+    static void switchTo(@NotNull Editor viewer, @NotNull PeekTarget candidate, @NotNull List<PeekTarget> candidates) {
+        PeekSession session = PeekSession.ofViewer(viewer);
+        if (session != null && session.inlay().isValid()) {
+            show(session.host(), session.inlay().getOffset(), candidate, session, candidates);
+        }
     }
 
     /** Opens the peeked file in a regular editor tab at the viewer caret and closes the Peek. */

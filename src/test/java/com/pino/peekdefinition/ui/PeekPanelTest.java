@@ -46,7 +46,7 @@ public class PeekPanelTest extends BasePlatformTestCase {
         int start = SOURCE.indexOf("    void b()");
         int end = SOURCE.indexOf("    }", start) + 5;
         target = new PeekTarget(SmartPointerManager.createPointer((PsiElement) file), file.getVirtualFile(),
-                new TextRange(start, end), start, "b()", AllIcons.Nodes.Method, "app.main", AllIcons.Nodes.Module);
+                new TextRange(start, end), start, "b()", AllIcons.Nodes.Method, "A", "app.main", AllIcons.Nodes.Module);
         viewer = PeekViewerFactory.create(getProject(), myFixture.getEditor().getDocument(), target, true, false);
     }
 
@@ -222,8 +222,28 @@ public class PeekPanelTest extends BasePlatformTestCase {
                 .toList();
     }
 
+    public void testNoImplementationChooserForASingleDefinition() {
+        List<String> texts = UIUtil.findComponentsOfType(panel(), JBLabel.class).stream().map(JBLabel::getText).toList();
+
+        assertFalse(texts.stream().anyMatch(text -> text.contains("/")));
+    }
+
+    public void testImplementationChooserNamesTheShownClassAndItsPosition() {
+        PeekTarget impl = new PeekTarget(target.pointer(), target.file(), target.range(), target.navigationOffset(),
+                "b()", AllIcons.Nodes.Method, "AImpl", "app.main", AllIcons.Nodes.Module);
+        PeekTarget other = new PeekTarget(target.pointer(), target.file(), target.range(), target.navigationOffset(),
+                "b()", AllIcons.Nodes.Method, "OtherImpl", "app.main", AllIcons.Nodes.Module);
+        PeekPanel panel = new PeekPanel(viewer, impl, List.of(target, impl, other), true, false,
+                () -> {}, promoted::incrementAndGet, candidate -> {});
+
+        List<String> texts = UIUtil.findComponentsOfType(panel, JBLabel.class).stream().map(JBLabel::getText).toList();
+
+        assertEquals(List.of("b()", "AImpl (2/3)", "app.main"), texts);
+    }
+
     private PeekPanel panel() {
-        return new PeekPanel(viewer, target, true, false, () -> {}, promoted::incrementAndGet);
+        return new PeekPanel(viewer, target, List.of(), true, false, () -> {}, promoted::incrementAndGet,
+                candidate -> {});
     }
 
     private static void press(JComponent target, int clickCount) {

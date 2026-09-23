@@ -21,6 +21,8 @@
       the file changes.</li>
       <li><b>Accurate</b>: definitions are resolved the same way as <i>Go to Declaration</i>, so overloads,
       constructors and library classes (attached or decompiled sources) resolve correctly.</li>
+      <li><b>Implementations</b>: peeking an interface or abstract method adds a dropdown to the header
+      listing its implementations, like Quick Definition; pick one to show it in the same Peek.</li>
       <li><b>Several Peeks at once</b>: peek from different lines and every Peek stays open. Peeking
       from inside a Peek replaces its content with the new definition.</li>
       <li><b>Read-only</b>: opening, switching and closing a Peek never modifies your code.</li>
