@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.FoldRegion;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.FoldingModelEx;
@@ -17,9 +18,13 @@ import com.intellij.openapi.editor.markup.HighlighterTargetArea;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.ui.ColorUtil;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 import com.pino.peekdefinition.model.PeekTarget;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.Color;
 
 /**
  * Creates the read-only editor inside a Peek and switches its view options.
@@ -30,6 +35,15 @@ final class PeekViewerFactory {
     /** Marks the definition's lines in whole-file mode. Falls back to the identifier-under-caret background. */
     static final TextAttributesKey TARGET_RANGE = TextAttributesKey.createTextAttributesKey(
             "PEEK_DEFINITION_TARGET_RANGE", EditorColors.IDENTIFIER_UNDER_CARET_ATTRIBUTES);
+
+    /**
+     * Content background: the editor background nudged a little lighter (dark themes) or darker (light themes),
+     * so the Peek reads as separate from the surrounding code. Resolved on each paint to follow scheme changes.
+     */
+    static final JBColor CONTENT_BACKGROUND = JBColor.lazy(() -> {
+        Color background = EditorColorsManager.getInstance().getGlobalScheme().getDefaultBackground();
+        return ColorUtil.shift(background, ColorUtil.isDark(background) ? 1.25 : 0.97);
+    });
 
     /** The definition's range, kept up to date as the file is edited. */
     private static final Key<RangeMarker> TARGET = Key.create("com.pino.peekdefinition.target");
@@ -44,6 +58,7 @@ final class PeekViewerFactory {
         EditorEx viewer = (EditorEx) EditorFactory.getInstance().createViewer(document, project, EditorKind.PREVIEW);
         viewer.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, target.file()));
         viewer.setBorder(JBUI.Borders.emptyLeft(4));
+        viewer.setBackgroundColor(CONTENT_BACKGROUND);
         viewer.setHorizontalScrollbarVisible(true);
         viewer.setVerticalScrollbarVisible(true);
         viewer.getScrollingModel().disableAnimation();

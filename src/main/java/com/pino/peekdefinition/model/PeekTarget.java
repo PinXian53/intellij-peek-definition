@@ -17,6 +17,7 @@ import javax.swing.Icon;
  * @param range            the definition's full range (JavaDoc + annotations + signature + body)
  * @param navigationOffset where the viewer caret goes, normally the name identifier
  * @param title            header text, e.g. {@code getUser(Long)}
+ * @param icon             the definition's own icon (method, class, field ...), shown before the title
  * @param location         module or library the file belongs to, shown in the header; null when unknown
  * @param locationIcon     icon shown next to {@code location}
  */
@@ -26,6 +27,7 @@ public record PeekTarget(
         @NotNull TextRange range,
         int navigationOffset,
         @NotNull String title,
+        @Nullable Icon icon,
         @Nullable String location,
         @Nullable Icon locationIcon
 ) {

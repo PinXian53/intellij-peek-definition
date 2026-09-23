@@ -25,10 +25,15 @@ import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -49,6 +54,10 @@ final class PeekPanel extends JPanel {
     static final int OUTLINE_THICKNESS = 2;
     /** The theme's focus-ring blue; resolved on each paint so it follows theme switches. */
     static final JBColor OUTLINE_COLOR = JBColor.lazy(JBUI.CurrentTheme.Focus::focusColor);
+    /** Corner rounding of the outline, in unscaled pixels. */
+    static final int CORNER_ARC = 12;
+    /** Same color as tool window headers, so the header reads as chrome rather than code. */
+    static final JBColor HEADER_BACKGROUND = JBColor.lazy(JBUI.CurrentTheme.ToolWindow::headerBackground);
 
     private final EditorEx viewer;
     private final JPanel header;
@@ -70,7 +79,7 @@ final class PeekPanel extends JPanel {
 
         collapseButton = new InplaceButton(collapseIcon(), e -> setCollapsed(!collapsed));
 
-        JBLabel titleLabel = new JBLabel(target.title());
+        JBLabel titleLabel = new JBLabel(target.title(), target.icon(), JBLabel.LEFT);
         titleLabel.setFont(JBFont.label().biggerOn(TITLE_FONT_INCREASE));
         titleLabel.setToolTipText(target.file().getName()
                 + " — click to collapse / expand, double-click to open in editor");
@@ -93,7 +102,7 @@ final class PeekPanel extends JPanel {
                 iconButton("Close (Esc)", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered), e -> onClose.run()));
 
         header = new JPanel(new BorderLayout(JBUI.scale(6), 0));
-        header.setBackground(JBColor.lazy(viewer::getBackgroundColor));
+        header.setBackground(HEADER_BACKGROUND);
         header.setBorder(JBUI.Borders.compound(
                 JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(4, 6)));
         header.add(collapseButton, BorderLayout.WEST);
@@ -119,9 +128,51 @@ final class PeekPanel extends JPanel {
         header.addMouseListener(headerClicks);
         titleLabel.addMouseListener(headerClicks);
 
-        setBorder(JBUI.Borders.customLine(OUTLINE_COLOR, OUTLINE_THICKNESS));
+        // Only reserves room for the outline, which paintChildren draws on top of the children.
+        setBorder(JBUI.Borders.empty(OUTLINE_THICKNESS));
+        setOpaque(false);
         add(header, BorderLayout.NORTH);
         add(viewer.getComponent(), BorderLayout.CENTER);
+    }
+
+    /**
+     * Children paint first, clipped to the rounded inside of the outline, then the outline goes on top, so the
+     * square corners of the header and the editor never show outside the curve.
+     */
+    @Override
+    protected void paintChildren(Graphics g) {
+        Graphics2D clipped = (Graphics2D) g.create();
+        try {
+            float inset = JBUI.scale(OUTLINE_THICKNESS);
+            float arc = JBUI.scale(CORNER_ARC);
+            clipped.clip(new RoundRectangle2D.Float(inset, inset, getWidth() - 2 * inset, getHeight() - 2 * inset,
+                    arc - inset, arc - inset));
+            super.paintChildren(clipped);
+        } finally {
+            clipped.dispose();
+        }
+
+        Graphics2D outline = (Graphics2D) g.create();
+        try {
+            float thickness = JBUI.scale(OUTLINE_THICKNESS);
+            float arc = JBUI.scale(CORNER_ARC);
+            outline.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            outline.setColor(OUTLINE_COLOR);
+            outline.setStroke(new BasicStroke(thickness));
+            outline.draw(new RoundRectangle2D.Float(thickness / 2, thickness / 2,
+                    getWidth() - thickness, getHeight() - thickness, arc, arc));
+        } finally {
+            outline.dispose();
+        }
+    }
+
+    /**
+     * Forces repaints of a child (the editor's caret, a scrollbar hover) to go through this panel, so they are
+     * clipped to the rounded corners too instead of painting straight over them.
+     */
+    @Override
+    public boolean isOptimizedDrawingEnabled() {
+        return false;
     }
 
     void setCollapsed(boolean collapsed) {

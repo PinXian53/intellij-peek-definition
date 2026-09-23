@@ -7,6 +7,7 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.util.Iconable;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
@@ -71,6 +72,7 @@ public final class JavaPeekTargetResolver implements PeekTargetResolver {
                 range,
                 definition.getTextOffset(),
                 describe(definition),
+                definition.getIcon(Iconable.ICON_FLAG_VISIBILITY),
                 owner == null ? null : owner.name(),
                 owner == null ? null : owner.icon()));
     }

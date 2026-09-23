@@ -16,7 +16,9 @@ import com.intellij.util.ui.UIUtil;
 import com.pino.peekdefinition.model.PeekTarget;
 
 import javax.swing.JComponent;
+import java.awt.Graphics2D;
 import java.awt.event.InputEvent;
+import java.awt.image.BufferedImage;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +46,7 @@ public class PeekPanelTest extends BasePlatformTestCase {
         int start = SOURCE.indexOf("    void b()");
         int end = SOURCE.indexOf("    }", start) + 5;
         target = new PeekTarget(SmartPointerManager.createPointer((PsiElement) file), file.getVirtualFile(),
-                new TextRange(start, end), start, "b()", "app.main", AllIcons.Nodes.Module);
+                new TextRange(start, end), start, "b()", AllIcons.Nodes.Method, "app.main", AllIcons.Nodes.Module);
         viewer = PeekViewerFactory.create(getProject(), myFixture.getEditor().getDocument(), target, true, false);
     }
 
@@ -120,6 +122,35 @@ public class PeekPanelTest extends BasePlatformTestCase {
 
         assertEquals(JBUI.scale(PeekPanel.OUTLINE_THICKNESS), panel.getInsets().top);
         assertEquals(JBUI.scale(PeekPanel.OUTLINE_THICKNESS), panel.getInsets().left);
+    }
+
+    public void testTitleShowsTheDefinitionIcon() {
+        JBLabel title = UIUtil.findComponentOfType(panel(), JBLabel.class);
+
+        assertSame(AllIcons.Nodes.Method, title.getIcon());
+    }
+
+    public void testChildRepaintsGoThroughTheRoundedPanel() {
+        PeekPanel panel = panel();
+
+        assertFalse(panel.isOpaque());
+        assertFalse(panel.isOptimizedDrawingEnabled());
+    }
+
+    public void testPaintsWithoutError() {
+        PeekPanel panel = panel();
+        panel.setSize(400, panel.getPreferredSize().height);
+        panel.doLayout();
+        BufferedImage image = new BufferedImage(400, panel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        try {
+            panel.paint(g);
+        } finally {
+            g.dispose();
+        }
+
+        assertEquals("corner stays transparent", 0, image.getRGB(0, 0) >>> 24);
+        assertTrue("outline is painted along the top edge", (image.getRGB(200, 0) >>> 24) > 0);
     }
 
     public void testHeaderHasCollapseMoreAndCloseButtons() {
