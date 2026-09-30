@@ -77,6 +77,7 @@
         <action id="com.pino.peekdefinition.PeekDefinition"
                 class="com.pino.peekdefinition.action.PeekDefinitionAction"
                 text="Peek Definition"
+                icon="/icons/peekDefinition.svg"
                 description="Show the definition of the symbol at the caret inside the current editor">
             <add-to-group group-id="EditorPopupMenu1" anchor="before" relative-to-action="EditorPopupMenu.GoTo"/>
             <add-to-group group-id="GoToCodeGroup" anchor="after" relative-to-action="GotoDeclaration"/>
