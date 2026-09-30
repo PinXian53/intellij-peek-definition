@@ -44,6 +44,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.1.2</b></p>
+    <ul>
+      <li>The <b>Peek Definition</b> action now has its own icon in the editor's right-click menu and in
+      <b>Navigate</b>.</li>
+    </ul>
     <p><b>0.1.1</b></p>
     <ul>
       <li>Implementations: peeking an interface or abstract method adds a dropdown to the header listing its
